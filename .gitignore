@@ -1,0 +1,22 @@
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+crash.log
+crash.*.log
+*.tfvars
+!terraform.tfvars.example
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# SSH keys generated for the lab
+*.pem
+id_rsa*
+!id_rsa*.example
+
+# OS/editor
+.DS_Store
+.vscode/
