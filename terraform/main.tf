@@ -170,3 +170,52 @@ resource "azurerm_key_vault_secret" "dummy" {
   key_vault_id = azurerm_key_vault.main.id
   depends_on   = [azurerm_key_vault.main]
 }
+
+# ---------------------------------------------------------------------------
+# Phase 5 - Observability
+# ---------------------------------------------------------------------------
+
+resource "azurerm_log_analytics_workspace" "main" {
+  name                = "law-${local.name_prefix}-001"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+  tags                = local.common_tags
+}
+
+resource "azurerm_monitor_action_group" "main" {
+  name                = "ag-${local.name_prefix}-001"
+  resource_group_name = azurerm_resource_group.main.name
+  short_name          = "platlabag"
+  tags                = local.common_tags
+
+  email_receiver {
+    name          = "primary-owner"
+    email_address = var.alert_email
+  }
+}
+
+resource "azurerm_monitor_metric_alert" "vm_cpu" {
+  name                = "alert-vm-high-cpu-001"
+  resource_group_name = azurerm_resource_group.main.name
+  scopes              = [azurerm_linux_virtual_machine.app.id]
+  description         = "Alert when VM average CPU exceeds 80% for 5 minutes."
+  severity            = 2
+  frequency           = "PT5M"
+  window_size         = "PT5M"
+
+  criteria {
+    metric_namespace = "Microsoft.Compute/virtualMachines"
+    metric_name      = "Percentage CPU"
+    aggregation      = "Average"
+    operator         = "GreaterThan"
+    threshold        = 80
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.main.id
+  }
+
+  tags = local.common_tags
+}
