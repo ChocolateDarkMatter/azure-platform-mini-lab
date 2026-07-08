@@ -1,0 +1,44 @@
+name: Terraform Validate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "terraform/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "terraform/**"
+
+defaults:
+  run:
+    working-directory: terraform
+
+jobs:
+  validate:
+    name: fmt / init / validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.14.7"
+
+      - name: Terraform fmt check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform init (no backend, no credentials needed to validate)
+        run: terraform init -backend=false
+
+      - name: Terraform validate
+        run: terraform validate
+
+      # terraform plan is intentionally omitted from this workflow because it
+      # requires live Azure credentials (ARM_CLIENT_ID / ARM_CLIENT_SECRET /
+      # ARM_SUBSCRIPTION_ID / ARM_TENANT_ID as repo secrets). fmt + validate
+      # is enough to demonstrate CI/CD validation gating for this lab; plan
+      # would be the next step in a real pipeline once secrets are wired up.
