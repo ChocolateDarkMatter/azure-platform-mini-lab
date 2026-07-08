@@ -21,3 +21,5 @@ output "log_analytics_workspace_name" {
 output "action_group_name" {
   value = azurerm_monitor_action_group.main.name
 }
+
+# Outputs verified working as of initial CI/CD test
